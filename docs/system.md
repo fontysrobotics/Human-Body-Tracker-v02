@@ -12,7 +12,7 @@ The System revolves around a System on Chip (SOC), for the project a XIlinx Zynq
 
 Taking a look at the SOC - FPGA we can see the following blocks in the the design:
 
-- **SPI:** The devkit contains a class of modules dedicated for high efficiency SPI communication with support for various modes, this offloads the need to spend time developing the SPI block and it ensures a high quality and reduction of errors relatively to self developed modules. The block acts only as hardware decode/encode interface for the rest of the system, multiple parallel blocks can be used for higher data throughput. Most of the sensor on the market run SPI Standard in Slave Mode. The reason why SPI is a good choice over other data buses is that the clocking and synchronization is done through a dedicated data line as well as well as the selection is data transmission is more reliable then other interfaces when the cables increase in length with the disadvantage that the number of data lanes is higher then other solutions.
+- **SPI (optional I2C):** The devkit contains a class of modules dedicated for high efficiency SPI and I2C communication with support for various modes, this offloads the need to spend time developing the FPGA blocks and it ensures a high quality and reduction of errors relatively to self developed modules. The block acts only as hardware decode/encode interface for the rest of the system, multiple parallel blocks can be used for higher data throughput. Most of the sensor on the market run SPI Standard in Slave Mode or I2C Data Bus. The reason why SPI is a good choice over I2C is that the transmission is more reliable when the length of the cables increase and bus contains both an input and output data lane. I2C advantage is the smaller amount of wires used in the bus connection as well as the ease of use in adding new device to the bus. The project will prefer the SPI interface for sensor that supports both and will use I2C when the need arises.
 
 - **Stage I Sensor processor:** The block has a dual role, to process sensor data and to execute calls to the sensor array in order to calibrate, initialize and request data. The block will translate simple instructions from the CPU and encode the instructions in a sensor compatible format, pass them to the sensor array and decode and push any data or responses the sensors return. The block can be discarded depending on the data the sensor outputs and the rate of the calls.
 
@@ -22,7 +22,7 @@ At the higher level we have a standard ARM Single Core CPU with attached memory 
 
 - **Optional Kernel Drivers:** The system runs a stripped down kernel, containing only the core modules required to run the system with optional drivers loaded on startup. All the drivers are in the standard tree, ensuring tight coupling with the rest of the kernel. Depending on the multiplexer configuration the driver loaded differs.
 	- *In sensor processing mode:* The loaded driver is Generic UIO (User Input/Output) is loaded, this driver allocates a chunk of registry memory and synchronize it with the FPGA side, the memory is split in sectors for writing and reading blocks. The data transfer is done by opening this registers and writing and reading to them as standard streams.
-	- *Pass trough:* The loaded driver is AXI-SPI Driver, this allow the kernel to interface directly with the SPI array for data exchange and offer an specialized interface for the rest of the system. This specialized interface allow faster data transfer between FPGA and CPU but place all the data processing on the high level program.
+	- *Pass trough:* The loaded driver is AXI-SPI/AXI-I2C Driver, this allow the kernel to interface directly with the sensor array for data exchange and offer an specialized interface for the rest of the system. This specialized interface allow faster data transfer between FPGA and CPU but place all the data processing on the high level program.
 
 - **Sensor Data Processor:** A python program accessing the kernel driver for exchanging data with the FPGA. Depending on the sensor selection and the multiplexer mode, the block will do at the minimum data packing in and issue simple instructions or it will communicate with sensor array, format the data and process it into usable values.
 
@@ -32,11 +32,11 @@ At the higher level we have a standard ARM Single Core CPU with attached memory 
 
 The rest of the diagram is represented by hardware links:
 
-- **Carrier Board:** The board were the SoC and the rest of the associated components is placed as well contains the exposed pins for the SPI ports as well as various sockets for the USB WiFi, power plug and debug port. The board is an Avnet Minized in Flash Boot Mode, the emmc loaded with the Ubuntu system and Linux Kernel and the QSPI memory with the boot loader and the FPGA configuration.
+- **Carrier Board:** The board were the SoC and the rest of the associated components is placed as well contains the exposed pins for the sensor ports as well as various sockets for the USB WiFi, power plug and debug port. The board is an Avnet Minized in Flash Boot Mode, the emmc loaded with the Ubuntu system and Linux Kernel and the QSPI memory with the boot loader and the FPGA configuration.
 
 - **Battery Block:** A simple Li-ion battery pack with a 5V, 1A mini usb connector for the board power socket
 
-- **Sensor Array:** The sensors type and positioning is described in a dedicated document. It is important to note that all the sensors in an array are sharing the power lines and the MOSI/MISO lines and have different Slave Selects with a single SPI master per block.
+- **Sensor Array:** The sensors type and positioning is described in a dedicated document. It is important to note that all the sensors in an array are sharing the power lines. For SPI the MOSI/MISO lines are connected to all sensor and different Slave Selects pins are used for each sensor. For I2C the SDA and SCL lines are linked to all the sensor in the array, testing is required to decide if signal boosters are needed.
 
 
 ## ROS package
