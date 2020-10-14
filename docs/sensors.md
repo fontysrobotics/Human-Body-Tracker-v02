@@ -1,6 +1,6 @@
 ## Sensor Selection
 
-This document contains the sensors that were considered for the project as well why some offer better functionality then the others and how that functionality impacts the project
+This document contains the sensors that were considered for the project as well why some offer better functionality than the others and how that functionality impacts the project
 
 #### Sparkfun Board for STMicroelectronics LSM9DS1
 The board itself is just a carrier for the sensor and such alternatives with the same sensor can be used. The board allows the a robust access to the connections of the sensor, no specialized connector is required. While the size of the board can create issues in more compact designs, the chip be used on custom PCBs given the access to proper tools. The board and sensor combination can be found on the official website at approximately 16 euros.
